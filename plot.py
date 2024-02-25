@@ -16,6 +16,14 @@ with open('in.txt', 'r') as f:
     for line in lines[1:]:
         x, y = line.split()
         plt.plot(float(x), float(y), 'bo')
+with open('out2.txt', 'r') as f:
+    lines = f.readlines()
+    for line in lines[:]:
+        x, y = line.split()
+        plt.plot(float(x), float(y), 'ro')
+#bound x and y axis
+plt.xlim(-20, 20)
+plt.ylim(-20, 20)
 plt.axis("equal")
-plt.savefig('plot.png')
+plt.show()
 

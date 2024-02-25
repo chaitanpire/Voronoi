@@ -41,10 +41,6 @@ struct point
     {
         cout << x << " " << y << endl;
     }
-    bool operator!=(const point &other) const
-    {
-        return !(*this == other);
-    }
 };
 
 map<point, pair<pair<point, point>, point>> circle_event;
@@ -145,26 +141,15 @@ struct edge
     {
         p1 = a;
         p2 = b;
-        if (a.x < b.x)
-        {
-            p1 = a;
-            p2 = b;
-        }
-        else
-        {
-            p1 = b;
-            p2 = a;
-        }
         flag = fla;
     }
     //==operator
     bool operator==(const edge &other) const
-    {
-        // Check if the points and flags match in either order
-        return (p1 == other.p1 && p2 == other.p2 && flag == other.flag) ||
-               (p1 == other.p2 && p2 == other.p1 && flag == other.flag);
+    {   
+        bool flag1 = (p1 == other.p1 && p2 == other.p2 && flag == other.flag);
+        bool flag2 = (p1 == other.p2 && p2 == other.p1 && flag == other.flag);
+        return (flag1 || flag2);
     }
-
     bool operator<(const edge &other) const
     {
         if (p1 == other.p1)
@@ -191,7 +176,6 @@ multiset<pair<multiset<point>, bool>, compare_set> s;
 priority_queue<point, vector<point>, compare> pq;
 map<edge, point> start_p;
 map<edge, point> end_p;
-multiset<edge> edges;
 map<multiset<point>, point> third_vertex;
 map<point, bool> is_Circle_event;
 void print_set()
@@ -212,21 +196,6 @@ void print_edges()
 {
     for (auto i : start_p)
     {
-        // cout << "The focal points are\n";
-        // point p1 = i.first.p1;
-        // point p2 = i.first.p2;
-        // p1.print();
-        // p2.print();
-        // cout << "The flag is " << i.first.flag << endl;
-        // cout << "The edge is\n";
-        cout << i.second.x << " " << i.second.y << endl;
-        cout << end_p[i.first].x << " " << end_p[i.first].y << endl;
-    }
-}
-void print_edges2()
-{
-    for (auto i : end_p)
-    {
         cout << "The focal points are\n";
         point p1 = i.first.p1;
         point p2 = i.first.p2;
@@ -234,8 +203,8 @@ void print_edges2()
         p2.print();
         cout << "The flag is " << i.first.flag << endl;
         cout << "The edge is\n";
-        cout << start_p[i.first].x << " " << start_p[i.first].y << endl;
         cout << i.second.x << " " << i.second.y << endl;
+        cout << end_p[i.first].x << " " << end_p[i.first].y << endl;
     }
 }
 int remove_element(pair<multiset<point>, bool> a)
@@ -266,6 +235,52 @@ void handle_circle_event(point p)
         p_.y = gib_y_cord(p1, p.x);
 
         auto it = s.upper_bound({{p, p}, 0});
+
+        // if (it == s.end())
+        // {
+        //     cout << "Iterator is at end in the circle event function, the point is" << endl;
+        //     it--;
+        //     auto a = *it;
+        //     auto it2 = (a.first).begin();
+        //     auto po1 = *it2;
+        //     it2++;
+        //     auto po2 = *it2;
+        //     po1.print();
+        //     po2.print();
+        //     cout << a.second << endl;
+
+        // }
+
+        // if (is_valid_line[{p1, p2}])
+        // {
+        //     is_valid_line[{p1, p2}] = 0;
+        //     end_p[{p1, p2}] = p_;
+        // }
+        // else
+        // {
+        //     is_valid_line[{p1, p2}] = 1;
+        //     start_p[{p1, p2}] = p_;
+        // }
+        // if (is_valid_line[{p2, p3}])
+        // {
+        //     is_valid_line[{p2, p3}] = 0;
+        //     end_p[{p2, p3}] = p_;
+        // }
+        // else
+        // {
+        //     is_valid_line[{p2, p3}] = 1;
+        //     start_p[{p2, p3}] = p_;
+        // }
+        // if (is_valid_line[{p1, p3}])
+        // {
+        //     is_valid_line[{p1, p3}] = 0;
+        //     end_p[{p1, p3}] = p_;
+        // }
+        // else
+        // {
+        //     is_valid_line[{p1, p3}] = 1;
+        //     start_p[{p1, p3}] = p_;
+        // }
         if (it == s.begin())
         {
             cout << "There is some error in handling circle event\n";
@@ -340,14 +355,7 @@ void handle_circle_event(point p)
             cout << "The size of set after erasing is " << s.size() << "\n";
 
             edge e(target, i, flag);
-            auto it = edges.find(e);
-            if (it != edges.end())
-            {
-                cout << "This edge was started some time ago\n";
-                end_p[*it] = p_;
-            }
-            else
-                end_p[e] = p_;
+            end_p[e] = p_;
             cout << "Erased breakpoint\n";
 
             cout << target.x << " " << target.y << " " << i.x << " " << i.y << " " << flag << endl;
@@ -370,7 +378,6 @@ void handle_circle_event(point p)
         print_set();
         edge e(po1, po2, flag);
         start_p[e] = p_;
-        edges.insert(e);
     }
     return;
 }
@@ -420,12 +427,11 @@ void handle_site_event(point p)
             point inter(p.x, y1);
             edge e1(p, p1, 0);
             edge e2(p, p1, 1);
+            cout << "Are the two edges same" << (e1 == e2) << endl;
             cout << " Is the edge1 already present " << (start_p.find(e1) != start_p.end()) << endl;
             cout << " Is the edge2 already present " << (start_p.find(e2) != start_p.end()) << endl;
             start_p[e1] = inter;
-            edges.insert(e1);
             start_p[e2] = inter;
-            edges.insert(e2);
         }
         else
         {
@@ -434,12 +440,11 @@ void handle_site_event(point p)
             point inter(p.x, y2);
             edge e1(p, p2, 0);
             edge e2(p, p2, 1);
+            cout << "Are the two edges same" << (e1 == e2) << endl;
             cout << " Is the edge1 already present " << (start_p.find(e1) != start_p.end()) << endl;
             cout << " Is the edge2 already present " << (start_p.find(e2) != start_p.end()) << endl;
             start_p[e1] = inter;
-            edges.insert(e1);
             start_p[e2] = inter;
-            edges.insert(e2);
         }
         cout << "Inserted new arcs" << endl;
         print_set();
@@ -506,6 +511,7 @@ void handle_site_event(point p)
 
         edge e1(p, target, 0);
         edge e2(p, target, 1);
+        cout << "Is e1 > e2 " << (e2 < e1) << endl;
         cout << "Adding new edges: ";
         cout << p.x << " " << p.y << " " << target.x << " " << target.y << "\n";
         cout << inter.x << " " << inter.y << "\n";
@@ -522,11 +528,8 @@ void handle_site_event(point p)
             cout << " The edge2 already present " << e2.p1.x << " " << e2.p1.y << " " << e2.p2.x << " " << e2.p2.y << "\n";
         }
         start_p[e1] = inter;
-        edges.insert(e1);
         start_p[e2] = inter;
-        edges.insert(e2);
         // Add new circle event
-
         p_ = return_circle_eve({{p1, p2}, p});
 
         if (p_.y < pos && !is_valid_CE[p_])
@@ -567,9 +570,7 @@ int main()
     edge e2(p1, p0, 0);
 
     start_p[e1] = inter1;
-    edges.insert(e1);
     start_p[e2] = inter1;
-    edges.insert(e2);
     pos = pq.top().y;
     s.insert({{p1, p0}, 1});
     s.insert({{p1, p0}, 0});
@@ -597,5 +598,33 @@ int main()
     }
 
     print_edges();
-    cout << "The size of start_p and end_p is " << start_p.size() << " " << end_p.size() << endl;
+
+    // find min x , min y, max x, max y
+
+    // for (auto i : s)
+    // {
+    //     auto it = (i.first).begin();
+
+    //     auto p1 = *it;
+    //     it++;
+    //     auto p2 = *it;
+    //     min_x = min(min_x, min(p1.x, p2.x));
+    //     max_x = max(max_x, max(p1.x, p2.x));
+    //     min_y = min(min_y, min(p1.y, p2.y));
+    //     max_y = max(max_y, max(p1.y, p2.y));
+    // }
+    // min_x -= 10;
+    // max_x += 10;
+    // min_y -= 10;
+    // max_y += 10;
+    // for (auto i : is_valid_line)
+    // {
+    //     if (i.second)
+    //     {
+    //         auto p1 = *(i.first.begin());
+    //         auto it = i.first.begin();
+    //         it++;
+    //         auto p2 = *it;
+    //     }
+    // }
 }
